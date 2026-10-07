@@ -1,7 +1,10 @@
+## Cada push en main ejecuta la pipeline.
 trigger:
 - main
 
 pool:
+## Azure crea una máquina Linux temporal
+## para ejecutar la pipeline.
   vmImage: ubuntu-latest
 
 variables:
@@ -55,25 +58,27 @@ stages:
             --parameters parameters.json            
 
 ## Agregar Deployment
-- stage: Deploy
+#  stage: Deploy
+#
+#   dependsOn: WhatIf
+#
+#   jobs:
+#
+#   - job: DeployResources
+#
+#     steps:
+#
+#     - task: AzureCLI@2
+#       inputs:
+#         azureSubscription: 'Azure-Connection-Bicep1'
+#         scriptType: bash
+#         scriptLocation: inlineScript
+#
+#         inlineScript: |
+#
+#           az deployment group create \
+#             --resource-group $(resourceGroup) \
+#             --template-file main.bicep \
+#             --parameters parameters.json
 
-  dependsOn: WhatIf
 
-  jobs:
-
-  - job: DeployResources
-
-    steps:
-
-    - task: AzureCLI@2
-      inputs:
-        azureSubscription: 'Azure-Connection-Bicep1'
-        scriptType: bash
-        scriptLocation: inlineScript
-
-        inlineScript: |
-
-          az deployment group create \
-            --resource-group $(resourceGroup) \
-            --template-file main.bicep \
-            --parameters parameters.json            
