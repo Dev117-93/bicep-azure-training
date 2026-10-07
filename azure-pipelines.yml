@@ -5,7 +5,9 @@ trigger:
 pool:
 ## Azure crea una máquina Linux temporal
 ## para ejecutar la pipeline.
-  vmImage: ubuntu-latest
+  name: Default
+  demands:
+  - Agent.Name -equals Bicep-Agent
 
 variables:
   resourceGroup: 'Bicep1'
