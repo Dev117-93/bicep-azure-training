@@ -1,20 +1,20 @@
-## Cada push en main ejecuta la pipeline.
 trigger:
 - main
 
 pool:
-## Azure crea una máquina Linux temporal
-## para ejecutar la pipeline.
   name: Default
-  demands:
-  - Agent.Name -equals Bicep-Agent
 
 variables:
   resourceGroup: 'Bicep1'
 
 stages:
 
+# ==========================
+# VALIDATE
+# ==========================
+
 - stage: Validate
+  displayName: 'Validate Bicep'
 
   jobs:
 
@@ -23,6 +23,8 @@ stages:
     steps:
 
     - task: AzureCLI@2
+      displayName: 'Validate Deployment'
+
       inputs:
         azureSubscription: 'Azure-Connection-Bicep1'
         scriptType: ps
@@ -31,8 +33,13 @@ stages:
         inlineScript: |
           az deployment group validate --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json
 
-# Agregar What-If
+# ==========================
+# WHATIF
+# ==========================
+
 - stage: WhatIf
+
+  displayName: 'Preview Changes'
 
   dependsOn: Validate
 
@@ -43,32 +50,58 @@ stages:
     steps:
 
     - task: AzureCLI@2
+      displayName: 'Run WhatIf'
+
       inputs:
         azureSubscription: 'Azure-Connection-Bicep1'
         scriptType: ps
         scriptLocation: inlineScript
 
         inlineScript: |
-          az deployment group what-if --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json            
+          az deployment group what-if --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json
 
-## Agregar Deployment
-##  stage: Deploy
-##
-##   dependsOn: WhatIf
-##
-##   jobs:
-##
-##   - job: DeployResources
-##
-##     steps:
-##
-##     - task: AzureCLI@2
-##       inputs:
-##         azureSubscription: 'Azure-Connection-Bicep1'
-##         scriptType: ps
-##        scriptLocation: inlineScript
-##
-##         inlineScript: |
-##           az deployment group create --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json
+# ==========================
+# DEPLOY
+# ==========================
 
+- stage: Deploy
 
+  displayName: 'Deploy Resources'
+
+  dependsOn: WhatIf
+
+  jobs:
+
+  - deployment: DeployResources
+
+    environment: TrainingBiceps
+
+    strategy:
+
+      runOnce:
+
+        deploy:
+
+          steps:
+
+          - task: AzureCLI@2
+            displayName: 'Deploy Bicep'
+
+            inputs:
+              azureSubscription: 'Azure-Connection-Bicep1'
+              scriptType: ps
+              scriptLocation: inlineScript
+
+              inlineScript: |
+                az deployment group create --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json
+
+          - task: AzureCLI@2
+            displayName: 'Show Outputs'
+
+            inputs:
+              azureSubscription: 'Azure-Connection-Bicep1'
+              scriptType: ps
+              scriptLocation: inlineScript
+
+              inlineScript: |
+                az deployment group show --resource-group $(resourceGroup) --name main --query properties.outputs
