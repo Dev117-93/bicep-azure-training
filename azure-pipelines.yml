@@ -29,11 +29,7 @@ stages:
         scriptLocation: inlineScript
 
         inlineScript: |
-
-          az deployment group validate \
-            --resource-group $(resourceGroup) \
-            --template-file main.bicep \
-            --parameters parameters.json
+          az deployment group validate --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json
 
 # Agregar What-If
 - stage: WhatIf
@@ -53,34 +49,26 @@ stages:
         scriptLocation: inlineScript
 
         inlineScript: |
+          az deployment group what-if --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json            
 
-          az deployment group what-if \
-            --resource-group $(resourceGroup) \
-            --template-file main.bicep \
-            --parameters parameters.json            
-
-# Agregar Deployment
-#  stage: Deploy
-#
-#   dependsOn: WhatIf
-#
-#   jobs:
-#
-#   - job: DeployResources
-#
-#     steps:
-#
-#     - task: AzureCLI@2
-#       inputs:
-#         azureSubscription: 'Azure-Connection-Bicep1'
-#         scriptType: ps
-#         scriptLocation: inlineScript
-#
-#         inlineScript: |
-#
-#           az deployment group create \
-#             --resource-group $(resourceGroup) \
-#             --template-file main.bicep \
-#             --parameters parameters.json
+## Agregar Deployment
+##  stage: Deploy
+##
+##   dependsOn: WhatIf
+##
+##   jobs:
+##
+##   - job: DeployResources
+##
+##     steps:
+##
+##     - task: AzureCLI@2
+##       inputs:
+##         azureSubscription: 'Azure-Connection-Bicep1'
+##         scriptType: ps
+##        scriptLocation: inlineScript
+##
+##         inlineScript: |
+##           az deployment group create --resource-group $(resourceGroup) --template-file main.bicep --parameters parameters.json
 
 
